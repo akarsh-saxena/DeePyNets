@@ -22,3 +22,16 @@ class RandomNormal:
 
     def __call__(self, shape):
         return np.random.normal(loc=self.mean, scale=self.sd, size=shape)
+
+
+class GlorotUniform:
+
+    def __init__(self, constant=6.0, random_state=None):
+        self.constant = constant
+        self.random_state = random_state
+
+    def __call__(self, shape):
+        np.random.seed(self.random_state)
+        sd = np.sqrt(self.constant / (shape[0] + shape[1]))
+        ar = np.random.uniform(-sd, sd, (shape[0], shape[1]))
+        return ar
