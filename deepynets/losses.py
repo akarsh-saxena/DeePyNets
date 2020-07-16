@@ -17,7 +17,23 @@ class BinaryCrossEntropy(Loss):
         super(BinaryCrossEntropy, self).__init__(binary_cross_entropy, epsilon=epsilon)
         self.epsilon = epsilon
 
+
+class CategoricalCrossEntropy(Loss):
+
+    def __init__(self, epsilon=1e-15):
+        super(CategoricalCrossEntropy, self).__init__(categorical_cross_entropy)
+        self.epsilon = epsilon
+
+
 def binary_cross_entropy(y_true, y_pred, epsilon=1e-15):
     m = y_true.shape[0]
     return np.squeeze(-(1. / m) * np.nansum(np.multiply(y_true, np.log(y_pred + epsilon)) +
                                             np.multiply(1 - y_true, np.log(1 - y_pred + epsilon))))
+
+
+def categorical_cross_entropy(y_true, y_pred, epsilon=1e-15):
+    m = y_true.shape[0]
+    predictions = np.clip(y_pred, epsilon, 1. - epsilon)
+    ce = -np.sum(y_true*np.log(predictions+1e-9))/m
+    return ce
+
