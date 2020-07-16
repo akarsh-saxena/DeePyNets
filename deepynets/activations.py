@@ -40,3 +40,29 @@ class Tanh:
 
     def derivative(self, z):
         return 1 - (self(z) ** 2)
+
+
+class Softmax:
+
+    def __call__(self, z):
+        t = np.exp(z)
+        return t / np.sum(t, axis=1, keepdims=True)
+
+
+aliases = {
+    'relu': Relu(),
+    'sigmoid': Sigmoid(),
+    'tanh': Tanh(),
+    'leaky_relu': LeakyRelu(),
+    'softmax': Softmax()
+}
+
+
+def get(initializer):
+    if isinstance(initializer, str):
+        return aliases[initializer]
+    elif callable(initializer):
+        return initializer
+    else:
+        raise ValueError('Parameter type not understood')
+
