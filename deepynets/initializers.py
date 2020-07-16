@@ -35,3 +35,21 @@ class GlorotUniform:
         sd = np.sqrt(self.constant / (shape[0] + shape[1]))
         ar = np.random.uniform(-sd, sd, (shape[0], shape[1]))
         return ar
+
+
+aliases = {
+    'zeros': Zeros(),
+    'ones': Ones(),
+    'glorot_uniform': GlorotUniform(),
+    'random_normal': RandomNormal()
+}
+
+
+def get(initializer):
+    if isinstance(initializer, str):
+        return aliases[initializer]
+    elif callable(initializer):
+        return initializer
+    else:
+        raise ValueError('Parameter type not understood')
+
