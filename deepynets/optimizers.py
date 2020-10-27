@@ -1,12 +1,29 @@
 import numpy as np
 
-class GradientDescent():
+class Optimizer:
+
+    def __init__(self):
+        self.batch_size=None
+
+    def apply_regularizer(self, model, learning_rate):
+
+        for i in range(model.total_layers):
+            reg_fn = model.get_config(i, 'weights_regularizer')
+            if reg_fn is None:
+                continue
+            regularized = model.get_config(i, 'W') - learning_rate/self.batch_size*reg_fn(model.get_config(i, 'W'))
+            model.set_config(i, 'W', regularized)
+
+class GradientDescent(Optimizer):
 
     def __init__(self, learning_rate=0.01, **kwargs):
+        super(GradientDescent, self).__init__(**kwargs)
         self.learning_rate = learning_rate
 
     def __call__(self, model, **kwargs):
         self.update(model)
+        self.batch_size = kwargs['batch_size']
+        self.apply_regularizer(model, self.learning_rate)
 
     def update(self, model):
         for i in range(model.total_layers):
@@ -16,14 +33,17 @@ class GradientDescent():
             model.set_config(i, 'b', new_b)
 
 
-class GradientDescentWithMomentum():
+class GradientDescentWithMomentum(Optimizer):
 
     def __init__(self, learning_rate=0.01, beta=0.9, **kwargs):
+        super(GradientDescentWithMomentum, self).__init__(**kwargs)
         self.learning_rate = learning_rate
         self.beta = beta
 
     def __call__(self, model, **kwargs):
         self.update(model)
+        self.batch_size = kwargs['batch_size']
+        self.apply_regularizer(model, self.learning_rate)
 
     def update(self, model):
         for i in range(model.total_layers):
@@ -38,9 +58,10 @@ class GradientDescentWithMomentum():
             model.set_config(i, 'b', new_b)
 
 
-class Adam():
+class Adam(Optimizer):
 
     def __init__(self, learning_rate=0.01, beta_1=0.9, beta_2=0.999, epsilon=1e-7, **kwargs):
+        super(Adam, self).__init__(**kwargs)
         self.learning_rate = learning_rate
         self.beta_1 = beta_1
         self.beta_2 = beta_2
@@ -52,6 +73,7 @@ class Adam():
         self.update(model)
         self.iteration = kwargs['epoch'] + 1
         self.batch_size = kwargs['batch_size']
+        self.apply_regularizer(model, self.learning_rate)
 
     def update(self, model):
 
@@ -77,3 +99,17 @@ class Adam():
             model.set_config(i, 'W', new_W)
             model.set_config(i, 'b', new_b)
     
+aliases = {
+    'gradient_descent': GradientDescent(),
+    'gradient_descent_with_momentum': GradientDescentWithMomentum(),
+    'adam': Adam()
+}
+
+
+def get(initializer):
+    if isinstance(initializer, str):
+        return aliases[initializer]
+    elif callable(initializer):
+        return initializer
+    else:
+        raise ValueError('Parameter type not understood')
