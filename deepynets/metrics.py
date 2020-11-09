@@ -13,6 +13,12 @@ class Precision:
         return calculate_precision(y_true, y_pred)
 
 
+class Recall:
+
+    def __call__(self, y_true, y_pred):
+        return calculate_recall(y_true, y_pred)
+
+
 def confusion_matrix(y_true, y_pred):
 
     y_pred = np.where(y_pred > 0.5, 1, 0)
@@ -44,5 +50,14 @@ def calculate_precision(y_true, y_pred):
     cm = confusion_matrix(y_true, y_pred)
     num = np.diag(cm)
     den = np.sum(cm, axis = 0)
+
+    return np.divide(num, den, out=np.zeros_like(num, dtype=float), where=den!=0)
+
+
+def calculate_recall(y_true, y_pred):
+
+    cm = confusion_matrix(y_true, y_pred)
+    num = np.diag(cm)
+    den = np.sum(cm, axis = 1)
 
     return np.divide(num, den, out=np.zeros_like(num, dtype=float), where=den!=0)
